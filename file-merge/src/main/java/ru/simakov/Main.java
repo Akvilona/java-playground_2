@@ -2,48 +2,49 @@ package ru.simakov;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Objects;
 
-@SuppressWarnings("PMD.AssignmentInOperand")
 public class Main {
     public static void main(final String[] args) throws IOException {
+        // Determining the path for a new file
         Path newFilePath = Paths.get("Color Matte_ru_en.txt");
-        if (Files.exists(newFilePath)) {
-            Files.delete(newFilePath);
-        }
 
+        // If the file exists, delete it
+        Files.deleteIfExists(newFilePath);
+
+        // Creating a new file
         Files.createFile(newFilePath);
 
-        ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+        // Opening the stream to read from files in English and Russian
+        try (BufferedReader readerEn = Files.newBufferedReader(Paths.get("C:\\Java\\java-playground_2\\Color_Matte.srt"), StandardCharsets.UTF_8);
+             BufferedReader readerRu = Files.newBufferedReader(Paths.get("C:\\Java\\java-playground_2\\Color_Matte_ru.txt"), StandardCharsets.UTF_8)) {
 
-        try (InputStream inputStreamEn = Files.newInputStream(Paths.get("C:\\Java\\java-playground\\Color_Matte.srt"));
-             InputStreamReader streamReaderEn = new InputStreamReader(Objects.requireNonNull(inputStreamEn), StandardCharsets.UTF_8);
-             BufferedReader readerEn = new BufferedReader(streamReaderEn);
+            // Cycle counter
+            int cycleCount = 0;
 
-             InputStream inputStreamRu = Files.newInputStream(Paths.get("C:\\Java\\java-playground\\Color_Matte_ru.txt"));
-             InputStreamReader streamReaderRu = new InputStreamReader(Objects.requireNonNull(inputStreamRu), StandardCharsets.UTF_8);
-             BufferedReader readerRu = new BufferedReader(streamReaderRu)) {
-
+            // Reading lines from both files
             String lineEn;
             String lineRu;
-
             while ((lineEn = readerEn.readLine()) != null && (lineRu = readerRu.readLine()) != null) {
+                // Forming a string to write to a new file
                 String string = lineEn.isEmpty() || Character.isDigit(lineEn.charAt(0))
                                 ? lineEn + System.lineSeparator()
-                                : lineRu.replaceAll(",","").replaceAll("\\.", "")
-                                    + " - "
-                                    + lineEn.replaceAll(",","").replaceAll("\\.", "")
-                                    + System.lineSeparator();
+                                : lineRu.replaceAll("[,.]", "") + " - " + lineEn.replaceAll("[,.]", "") + System.lineSeparator();
 
+                // Writing a line to a new file
                 Files.writeString(newFilePath, string, StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+
+                // Output of a point to the console every five thousandth cycle
+                if (++cycleCount % 5000 == 0) {
+                    System.out.print(".");
+                }
             }
+            // Line feed after completion of the loop
+            System.out.println("\nTotal lines: " + cycleCount );
         }
     }
 }
